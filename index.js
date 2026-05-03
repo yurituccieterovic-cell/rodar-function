@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 
 async function gerarResposta(prompt) {
-  // Placeholder: aqui você conecta ao Copilot Studio futuramente
+  // Placeholder: futuramente conecta ao Copilot Studio
   return `Copilot analisou: ${prompt}`;
 }
 
@@ -12,12 +12,25 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const { prompt, assembleiaId, callbackUrl, voice } = req.body;
+  const { prompt, assembleiaId, callbackUrl } = req.body;
   const respostaCopilot = await gerarResposta(prompt);
 
-  // Simula o callback (quando você quiser, pode implementar o POST real para callbackUrl)
-  context.log(`Callback para ${callbackUrl}:`, respostaCopilot);
+  // Envia callback real
+  try {
+    await fetch(callbackUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assembleiaId,
+        resposta: respostaCopilot
+      })
+    });
+    context.log(`Callback enviado para ${callbackUrl}`);
+  } catch (err) {
+    context.log("Erro ao enviar callback:", err);
+  }
 
+  // Resposta imediata para quem chamou a Function
   context.res = {
     status: 200,
     body: { status: "OK", resposta: respostaCopilot }
